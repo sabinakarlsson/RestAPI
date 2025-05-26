@@ -43,7 +43,7 @@ namespace RestAPI.Controllers
             user.Password = PasswordHelper.HashPassword(user.Password);
 
             UserService.Users.Add(user);
-            return Ok("Registreringen lyckades!");
+            return Ok("Registration successful!");
 
         }
 
