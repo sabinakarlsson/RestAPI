@@ -1,6 +1,8 @@
 
-using RestAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using RestAPI.Data;
+using RestAPI.Services;
+using RestAPI.Services.Interfaces;
 
 namespace RestAPI
 {
@@ -19,6 +21,8 @@ namespace RestAPI
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<IUserService, UserService>();
 
             var app = builder.Build();
 

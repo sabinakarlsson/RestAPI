@@ -5,6 +5,8 @@ using RestAPI.Services;
 using RestAPI.Data;
 using RestAPI.Helpers;
 using Microsoft.AspNetCore.Identity;
+using RestAPI.Services.Interfaces;
+using System.Threading.Tasks;
 
 namespace RestAPI.Controllers
 {
@@ -13,16 +15,16 @@ namespace RestAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ApplicationDbContext _dbcontext;
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public UserController(ApplicationDbContext dbcontext, UserService userService)
+        public UserController(ApplicationDbContext dbcontext, IUserService userService)
         {
             _dbcontext = dbcontext;
             _userService = userService;
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] User user)
         {
             if (user == null || string.IsNullOrEmpty(user.UserName) || string.IsNullOrEmpty(user.Password))
             {
@@ -34,7 +36,7 @@ namespace RestAPI.Controllers
                 return BadRequest(errorMessage);
             }
 
-            var existingUser = UserService.GetUser(user.UserName);
+            var existingUser = await _userService.GetUserAsync(user.UserName);
             if (existingUser != null)
             {
                 return Conflict("User already exists.");
@@ -42,21 +44,21 @@ namespace RestAPI.Controllers
 
             user.Password = PasswordHelper.HashPassword(user.Password);
 
-            UserService.Users.Add(user);
+            await _userService.AddUserAsync(user);
             return Ok("Registration successful!");
 
         }
 
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] User user)
+        public async Task<IActionResult> Login([FromBody] User user)
         {
             if (user == null || string.IsNullOrEmpty(user.UserName) || string.IsNullOrEmpty(user.Password))
             {
                 return BadRequest("Invalid user data. Username and password are required.");
             }
 
-            var existingUser = UserService.Users.FirstOrDefault(u => u.UserName == user.UserName && u.Password == user.Password);
+            var existingUser = await _userService.GetUserAsync(user.UserName);
             if (existingUser == null)
             {
                 return Unauthorized("Invalid username or password.");
@@ -69,17 +71,6 @@ namespace RestAPI.Controllers
 
             return Ok("Login successful.");
 
-        }
-
-        [HttpGet("getuser/{userName}")]
-        public IActionResult GetUser(string userName)
-        {
-            var user = UserService.Users.FirstOrDefault(u => u.UserName == userName);
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
-            return Ok(user);
         }
     }
 }

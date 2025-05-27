@@ -1,31 +1,29 @@
 ﻿using RestAPI.Services.Interfaces;
 using RestAPI.ViewModel;
+using RestAPI.Data;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace RestAPI.Services
 {
     public class UserService : IUserService
     {
-        //private readonly BankDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
 
-        public static List<User> Users = new List<User>();
-
-        public static User GetUser(string userName)
+        public UserService(ApplicationDbContext dbContext)
         {
-            return Users.FirstOrDefault(u => u.UserName == userName);
-        }
-        public static void AddUser(User user)
-        {
-            Users.Add(user);
-        }
-        public static void RemoveUser(string userName)
-        {
-            var user = GetUser(userName);
-            if (user != null)
-            {
-                Users.Remove(user);
-            }
+            _dbContext = dbContext;
         }
 
+        public async Task<User> GetUserAsync(string userName)
+        {
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+        }
+        public async Task AddUserAsync(User user)
+        {
+            await _dbContext.Users.AddAsync(user);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
